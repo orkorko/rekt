@@ -1,0 +1,17 @@
+(define foo "bar")
+(define baz 69)
+(set foo "baz")
+
+(func (max a b)
+   (if (>= foo bar) foo bar))
+
+(func (avg p q)
+    (/ (+ p q) 2))
+
+(func (mod x)
+    (if (< x 0) (- x) x))
+
+(func (fib x)
+    (if (/= 0)
+        (+ x (fib (- x 1)))
+        0))
