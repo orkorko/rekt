@@ -35,22 +35,25 @@ struct obj {
     struct {
       struct obj *car;
       struct obj *cdr;
-    } cons;
+    };
   };
 };
+
+#define car(X) X->car
+#define cdr(X) X->cdr
 
 FILE *fp;
 struct obj *all_symbols;
 
 void setinput(FILE *f) { fp = f; }
 
-struct obj *cons(struct obj *car, struct obj *cdr) {
+struct obj *cons(struct obj *h, struct obj *t) {
   struct obj *ret = malloc(sizeof(struct obj));
   if (ret == NULL)
     panic("failed to malloc");
   ret->type = CONS;
-  ret->cons.car = car;
-  ret->cons.cdr = cdr;
+  car(ret) = h;
+  cdr(ret) = t;
   return ret;
 }
 
