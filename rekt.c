@@ -131,41 +131,61 @@ struct obj *gettok() {
   else panic("can't parse this symbol");
 }
 
-void dispob(struct obj *ob) {
-  switch(ob->type) {
-    case SYM:
-      printf("<symbol> [%s]\n", ob->sym);
-      break;
-    case INT:
-      printf("<int> [%d]\n", ob->val);
-      break;
-    case CONS:
-      printf("<cons>\n");
-      break;
-    case NIL:
-      printf("<nil>\n");
-      break;
-    case LPAREN:
-      printf("<lparen>\n");
-      break;
-    case RPAREN:
-      printf("<rparen>\n");
-      break;
-    case QUOTE:
-      printf("<quote>\n");
-      break;
-    default:
-      printf("<illegal>\n");
-      break;
+// TODO: refactor this mess
+int set;
+void pprint(struct obj *ob) {
+  switch (ob->type) {
+  case CONS: {
+    set = 1;
+    putc('(', stdout);
+    pprint(car(ob));
+    if (!set)
+      printf(") (");
+    set = 0;
+    pprint(cdr(ob));
+    putc(')', stdout);
+    break;
+  }
+  
+  case SYM:
+    printf("%s", ob->sym);
+    putc(' ', stdout);
+    break;
+
+  case INT:
+    printf("%d", ob->val);
+    putc(' ', stdout);
+    break;
+
+  case NIL:
+    printf("nil");
+    break;
+
+  case LPAREN:
+    printf("(");
+    break;
+
+  case RPAREN:
+    printf(")");
+    break;
+
+  case QUOTE:
+    printf("'");
+    break;
+
+  default:
+    printf("<illegal>");
+    break;
   }
 }
 
 int main() {
   setinput(stdin);
-  for(;;) {
       struct obj *ob = gettok();
-      if(!ob) return 0;
-      dispob(ob);
+  for (;;) {
+    if (ob == nil)
+      return 0;
+    pprint(ob);
   }
   return 0;
 }
