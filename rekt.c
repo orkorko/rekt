@@ -9,8 +9,6 @@
     exit(1);                                                                   \
   } while (0)
 
-#define BUF_CAP 100
-
 enum {
   ARCH_I64,
   ARCH_RISCV,
@@ -62,7 +60,10 @@ struct obj *lparen = &(struct obj){LPAREN};
 struct obj *rparen = &(struct obj){RPAREN};
 struct obj *quote = &(struct obj){QUOTE};
 
-char buf[100]; int buflen = 0;
+#define BUF_CAP 100
+
+char buf[BUF_CAP];
+int buflen = 0;
 
 #define buf_add(X) buf[buflen++] = X
 #define buf_pop() buf[buflen--] = 0
@@ -76,7 +77,7 @@ struct obj *mkint() {
   struct obj *ret = malloc(sizeof(struct obj));
   ret->type = INT;
   int n = 0;
-  for(int i=0; i<buflen; i++)
+  for (int i = 0; i < buflen; i++)
     n = n * 10 + ((int)buf[i] - '0');
   ret->val = n;
   return ret;
@@ -85,7 +86,7 @@ struct obj *mkint() {
 struct obj *mksym(char *sym) {
   struct obj *ret = malloc(sizeof(struct obj));
   ret->type = SYM;
-  ret->sym  = sym;
+  ret->sym = sym;
   return ret;
 }
 
@@ -97,21 +98,25 @@ char peek() {
 
 struct obj *readint(char c) {
   ungetc(c, fp);
-  while(isdigit(peek())) 
+
+  while (isdigit(peek()))
     buf_add(getc(fp));
   return mkint();
 }
 
 struct obj *readsym(char c) {
   ungetc(c, fp);
-  while(isvalidsym(peek())) 
+
+  while (isvalidsym(peek())) {
     buf_add(getc(fp));
+  }
   return mksym(getbuf());
 }
 
 struct obj *gettok() {
   int c;
 
+  // reset buffer
   buflen = 0;
 
   do {
