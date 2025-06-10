@@ -120,15 +120,48 @@ struct obj *gettok() {
   buflen = 0;
 
   do {
-  } while((isspace(c = getc(fp))));
+    // eat whitespace
+  } while ((isspace(c = getc(fp))));
 
-  if(c == EOF) return NULL;
-  else if(c == '(') return lparen;
-  else if(c == ')') return rparen;
-  else if(c == '\'') return quote;
-  else if(isdigit(c)) return readint(c);
-  else if(isvalidsym(c)) return readsym(c);
+  if (c == EOF) return nil;
+  else if (c == '(') return lparen;
+  else if (c == ')') return rparen;
+  else if (c == '\'') return quote;
+  else if (isdigit(c)) return readint(c);
+  else if (isvalidsym(c)) return readsym(c);
   else panic("can't parse this symbol");
+}
+
+struct obj *readlist();
+struct obj *readexpr(struct obj *ob);
+struct obj *reverse(struct obj *ob);
+void pprint(struct obj *ob);
+
+struct obj *reverse(struct obj *p) {
+  struct obj *ret = nil;
+  while (p != nil) {
+    struct obj *head = p;
+    p = cdr(p);
+    cdr(head) = ret;
+    ret = head;
+  }
+  return ret;
+}
+
+struct obj *readlist() {
+  struct obj *items = nil;
+  struct obj *ob;
+  
+  while ((ob = gettok()) != rparen) {
+    if(ob == nil) panic("missing rparen");
+    items = cons(readexpr(ob), items);
+  }
+  
+  return reverse(items);
+}
+
+struct obj *readexpr(struct obj *ob) {
+  return ob == lparen ? readlist() : ob;
 }
 
 // TODO: refactor this mess
@@ -181,8 +214,8 @@ void pprint(struct obj *ob) {
 
 int main() {
   setinput(stdin);
-      struct obj *ob = gettok();
   for (;;) {
+    struct obj *ob = readexpr(gettok());
     if (ob == nil)
       return 0;
     pprint(ob);
