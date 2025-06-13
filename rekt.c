@@ -84,45 +84,39 @@ struct obj *mkint(void) {
   return ret;
 }
 
-struct obj *mksym(char *sym) {
+struct obj *mksym(void) {
   struct obj *ret = malloc(sizeof(struct obj));
   ret->type = SYM;
-  ret->sym = sym;
+  ret->sym = getbuf();
   return ret;
 }
 
-char peek() {
-  int c = getc(fp);
-  ungetc(c, fp);
+char peek(void) {
+  int c = getc(ifp);
+  ungetc(c, ifp);
   return c;
 }
 
 struct obj *readint(char c) {
-  ungetc(c, fp);
-
+  ungetc(c, ifp);
   while (isdigit(peek()))
-    buf_add(getc(fp));
+    buf_add(getc(ifp));
   return mkint();
 }
 
 struct obj *readsym(char c) {
-  ungetc(c, fp);
-
-  while (isvalidsym(peek())) {
-    buf_add(getc(fp));
-  }
-  return mksym(getbuf());
+  ungetc(c, ifp);
+  while (isvalidsym(peek()))
+    buf_add(getc(ifp));
+  return mksym();
 }
 
-struct obj *gettok() {
-  int c;
-
-  // reset buffer
-  buflen = 0;
+struct obj *gettok(void) {
+  int c; buflen = 0;
 
   do {
     // eat whitespace
-  } while ((isspace(c = getc(fp))));
+  } while ((isspace(c = getc(ifp))));
 
   if (c == EOF) return nil;
   else if (c == '(') return lparen;
