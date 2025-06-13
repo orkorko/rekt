@@ -37,13 +37,32 @@ struct obj {
   };
 };
 
-#define car(X) X->car
-#define cdr(X) X->cdr
+#define car(X)  (X->car)
+#define cdr(X)  (X->cdr)
+#define cadr(X) ((X->cdr)->car)
+#define cddr(X) ((X->cdr)->cdr)
 
-FILE *fp;
-struct obj *all_symbols;
+struct obj *nil = &(struct obj){NIL};
+struct obj *lparen = &(struct obj){LPAREN};
+struct obj *rparen = &(struct obj){RPAREN};
+struct obj *quote = &(struct obj){QUOTE};
 
-void setinput(FILE *f) { fp = f; }
+FILE *ifp, *ofp;
+#define BUF_CAP 100
+char buf[BUF_CAP];
+int buflen;
+
+void setinput(FILE *f)  { ifp = f; }
+void setoutput(FILE *f) { ofp = f; }
+
+void buf_add(char c) { if(buflen < BUF_CAP - 1) buf[buflen++] = c; }
+void buf_pop(void) { buf[buflen--] = 0; }
+char *getbuf(void) { return strndup(buf, buflen); }
+
+const char valid_sym[] = "!$%&*+-./:<=>?@^_~";
+int isvalidsym(char c) { return isalpha(c) || strchr(valid_sym, c); }
+
+/* Tokenizer */
 
 struct obj *cons(struct obj *h, struct obj *t) {
   struct obj *ret = malloc(sizeof(struct obj));
@@ -55,25 +74,7 @@ struct obj *cons(struct obj *h, struct obj *t) {
   return ret;
 }
 
-struct obj *nil = &(struct obj){NIL};
-struct obj *lparen = &(struct obj){LPAREN};
-struct obj *rparen = &(struct obj){RPAREN};
-struct obj *quote = &(struct obj){QUOTE};
-
-#define BUF_CAP 100
-
-char buf[BUF_CAP];
-int buflen = 0;
-
-#define buf_add(X) buf[buflen++] = X
-#define buf_pop() buf[buflen--] = 0
-#define getbuf(X) strndup(buf, buflen)
-
-const char valid_sym[] = "!$%&*+-./:<=>?@^_~";
-
-#define isvalidsym(c) isalpha(c) || strchr(valid_sym, c)
-
-struct obj *mkint() {
+struct obj *mkint(void) {
   struct obj *ret = malloc(sizeof(struct obj));
   ret->type = INT;
   int n = 0;
