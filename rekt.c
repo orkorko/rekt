@@ -144,15 +144,13 @@ struct obj *reverse(struct obj *p) {
 }
 
 struct obj *readlist() {
-  struct obj *items = nil;
+  struct obj *acc = nil;
   struct obj *ob;
-  
   while ((ob = gettok()) != rparen) {
     if(ob == nil) panic("missing rparen");
-    items = cons(readexpr(ob), items);
+    acc = cons(readexpr(ob), acc);
   }
-  
-  return reverse(items);
+  return reverse(acc);
 }
 
 struct obj *readexpr(struct obj *ob) {
