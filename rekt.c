@@ -16,10 +16,10 @@ enum {
 };
 
 enum {
+  NIL,
+  CONS,
   SYM,
   INT,
-  CONS,
-  NIL,
   LPAREN,
   RPAREN,
   QUOTE,
