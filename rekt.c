@@ -127,6 +127,8 @@ struct obj *gettok(void) {
   else panic("can't parse this symbol");
 }
 
+/* Parser */
+
 struct obj *readlist();
 struct obj *readexpr(struct obj *ob);
 struct obj *reverse(struct obj *ob);
@@ -155,6 +157,23 @@ struct obj *readlist() {
 
 struct obj *readexpr(struct obj *ob) {
   return ob == lparen ? readlist() : ob;
+}
+
+/* Emitter */
+
+#define INT_MASK   3
+#define INT_TAG    0
+#define INT_SHIFT  2
+#define EMPTY_LIST 47
+
+#define outf(...)                                                              \
+  fprintf(ofp, __VA_ARGS__);                                                   \
+  fflush(stdout)
+
+#define repr_int(X) X << INT_SHIFT
+
+void emit_int(int val) {
+  outf("movl $%d, %%eax\n", repr_int(val));
 }
 
 // TODO: refactor this mess
