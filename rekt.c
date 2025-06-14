@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define panic(X)                                                               \
   do {                                                                         \
@@ -192,9 +193,61 @@ void emit_int(int val) {
   outf("movl $%d, %%eax\n", repr_int(val));
 }
 
+#define OINT_SIZE (int)sizeof(int)
+
+void prim_add(struct obj *ob, int sp) {  
+  struct obj *op1 = car(ob),
+             *op2 = cadr(ob);
+  emit(op2, sp);
+  outf("subq $%d, %%rsp\n", OINT_SIZE);
+  outf("movl %%eax, (%%rsp)\n");  
+  emit(op1, (sp + OINT_SIZE));
+  outf("addl %d(%%rsp), %%eax\n", sp);
+}
+
+void prim_sub(struct obj *ob, int sp) {  
+  struct obj *op1 = car(ob),
+             *op2 = cadr(ob);
+  emit(op2, sp);
+  outf("subq $%d, %%rsp\n", OINT_SIZE);  
+  outf("movl %%eax, (%%rsp)\n");  
+  emit(op1, (sp + OINT_SIZE));
+  outf("subl %d(%%rsp), %%eax\n", sp);
+}
+
+void prim_mul(struct obj *ob, int sp) {  
+  struct obj *op1 = car(ob),
+             *op2 = cadr(ob);
+  emit(op2, sp);
+  outf("subq $%d, %%rsp\n", OINT_SIZE);  
+  outf("movl %%eax, (%%rsp)\n");  
+  emit(op1, (sp + OINT_SIZE));
+  outf("imull %d(%%rsp), %%eax\n", sp);
+}
+
 void emit(struct obj *ob, ...
           /* int sp */) {
   switch(ob->type) {
+  case CONS: {
+    va_list ap;
+    va_start(ap, ob);
+    int sp = va_arg(ap, int);
+    va_end(ap);
+    if(car(ob)->type == SYM) {
+      if(strcmp(car(ob)->sym, "+") == 0)
+        prim_add(cdr(ob), sp);
+      else if(strcmp(car(ob)->sym, "-") == 0)
+        prim_sub(cdr(ob), sp);    
+      else if(strcmp(car(ob)->sym, "*") == 0)
+        prim_mul(cdr(ob), sp);
+      break;
+    }
+    else {
+      emit(car(ob));
+      emit(cdr(ob));
+    }
+    break;
+  }
   case NIL:
     // skip nulls without declarations
     break;
@@ -207,8 +260,10 @@ void emit(struct obj *ob, ...
   // TODO: unary primitives
 }
 
+/* Debug */
+
 // TODO: refactor this mess
-int set;
+char set;
 void pprint(struct obj *ob) {
   switch (ob->type) {
   case CONS: {
