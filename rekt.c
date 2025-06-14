@@ -257,11 +257,15 @@ void pprint(struct obj *ob) {
 
 int main() {
   setinput(stdin);
+  setoutput(stdout);
+  emit_prolog();
   for (;;) {
     struct obj *ob = readexpr(gettok());
-    if (ob == nil)
+    if (ob == nil) {
+      emit_epilog();
       return 0;
-    pprint(ob);
+    }
+    emit(ob);
   }
   return 0;
 }
