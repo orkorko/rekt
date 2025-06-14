@@ -172,8 +172,39 @@ struct obj *readexpr(struct obj *ob) {
 
 #define repr_int(X) X << INT_SHIFT
 
+void emit(struct obj *ob, ...
+          /* int sp */);
+
+void emit_prolog() {
+  outf(".section .text\n");
+  outf(".global _start\n");
+  outf("_start:\n");
+}
+
+void emit_epilog() {
+  outf("movl %%eax, %%edi\n");
+  // outf("movl $0, %%edi\n");
+  outf("movl $60, %%eax\n");
+  outf("syscall\n");
+}
+
 void emit_int(int val) {
   outf("movl $%d, %%eax\n", repr_int(val));
+}
+
+void emit(struct obj *ob, ...
+          /* int sp */) {
+  switch(ob->type) {
+  case NIL:
+    // skip nulls without declarations
+    break;
+  case INT:
+    emit_int(ob->val);
+    break;
+  default:
+    break;
+  }
+  // TODO: unary primitives
 }
 
 // TODO: refactor this mess
